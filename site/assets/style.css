@@ -84,7 +84,7 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
 }
 .hero .kicker { color: #bfeff4; }
 .hero h1 { font-size: clamp(2.8rem, 8vw, 5.5rem); margin: 0 0 .6rem; }
-.hero .lead { font-size: clamp(1.05rem, 2.2vw, 1.3rem); margin: 0 0 1.6rem; opacity: .95; }
+.hero .lead { font-size: clamp(1.05rem, 2.2vw, 1.3rem); margin: 0 0 1.6rem; opacity: .95; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; }
 .hero-links { display: flex; flex-wrap: wrap; gap: .6rem; }
 .btn {
   display: inline-block; padding: .65rem 1.2rem; border-radius: 999px;
@@ -116,7 +116,11 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
 .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
 .card:hover .card-img img { transform: scale(1.04); }
 .card-body { padding: .9rem 1.1rem 1.1rem; }
-.card-body time { font-size: .8rem; color: var(--muted); }
+/* Dates en estil etiqueta: majúscules espaiades i en color */
+.card-body time, .post-head .date time {
+  font-family: var(--sans); font-weight: 600; text-transform: uppercase;
+  letter-spacing: .14em; font-size: .75rem; color: var(--accent);
+}
 .card-body h3 { margin: .2rem 0 0; font-size: 1.25rem; }
 
 /* Entrada */
