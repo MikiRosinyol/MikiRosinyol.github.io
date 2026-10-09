@@ -1,0 +1,313 @@
+﻿# Genera la web estàtica de mikirosinyol.com a partir de l'exportació de WordPress (API JSON).
+# Ús: powershell -File build-site.ps1
+param(
+    [string] $Data = 'C:\Claude\web-mikirosinyol\backup-hostinger\extret\api',
+    [string] $Site = 'C:\Claude\web-mikirosinyol\site'
+)
+
+Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName System.Web
+$utf8 = New-Object System.Text.UTF8Encoding $false
+$media = Join-Path $Site 'media'
+
+$months = 'gener','febrer','març','abril','maig','juny','juliol','agost','setembre','octubre','novembre','desembre'
+function Format-DateCa([datetime] $d) {
+    $m = $months[$d.Month - 1]
+    $de = if ($m -match '^[aeiou]') { "d'" } else { 'de ' }
+    "$($d.Day) $de$m de $($d.Year)"
+}
+function Write-File([string] $path, [string] $text) {
+    New-Item -ItemType Directory -Force (Split-Path $path) | Out-Null
+    [IO.File]::WriteAllText($path, $text, $utf8)
+}
+function Enc([string] $s) { [System.Web.HttpUtility]::HtmlEncode($s) }
+function Dec([string] $s) { [System.Web.HttpUtility]::HtmlDecode($s) }
+
+# Converteix una URL de wp-content/uploads a la ruta de la imatge redimensionada dins de media/
+function Resolve-Image([string] $url) {
+    $rel = ($url -replace '^.*?wp-content/uploads/', '') -replace '-\d+x\d+(\.\w+)$', '$1' -replace '-scaled(\.\w+)$', '$1'
+    foreach ($cand in @($rel, ($rel -replace '\.\w+$', '.jpg'))) {
+        if (Test-Path (Join-Path $media ($cand -replace '/', '\'))) { return $cand }
+    }
+    Write-Warning "Imatge no trobada: $url"
+    return $null
+}
+
+$sizeCache = @{}
+function Get-Size([string] $rel) {
+    if (-not $sizeCache.ContainsKey($rel)) {
+        $fs = [IO.File]::OpenRead((Join-Path $media ($rel -replace '/', '\')))
+        try {
+            $img = [System.Drawing.Image]::FromStream($fs, $false, $false)
+            $sizeCache[$rel] = @($img.Width, $img.Height)
+            $img.Dispose()
+        } finally { $fs.Dispose() }
+    }
+    $sizeCache[$rel]
+}
+
+# Miniatura per a les targetes de la portada
+function New-Thumb([string] $rel, [string] $slug) {
+    $outRel = "thumbs/$slug.jpg"
+    $out = Join-Path $media ($outRel -replace '/', '\')
+    if (-not (Test-Path $out)) {
+        New-Item -ItemType Directory -Force (Split-Path $out) | Out-Null
+        $img = [System.Drawing.Image]::FromFile((Join-Path $media ($rel -replace '/', '\')))
+        # Retall 4:3 centrat a 640x480
+        $tw = 640; $th = 480
+        $scale = [Math]::Max($tw / $img.Width, $th / $img.Height)
+        $sw = [int]($tw / $scale); $sh = [int]($th / $scale)
+        $sx = [int](($img.Width - $sw) / 2); $sy = [int](($img.Height - $sh) / 2)
+        $bmp = New-Object System.Drawing.Bitmap $tw, $th
+        $g = [System.Drawing.Graphics]::FromImage($bmp)
+        $g.InterpolationMode = 'HighQualityBicubic'
+        $g.DrawImage($img, (New-Object System.Drawing.Rectangle 0, 0, $tw, $th), (New-Object System.Drawing.Rectangle $sx, $sy, $sw, $sh), 'Pixel')
+        $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object MimeType -eq 'image/jpeg'
+        $ep = New-Object System.Drawing.Imaging.EncoderParameters 1
+        $ep.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter ([System.Drawing.Imaging.Encoder]::Quality), ([long]78)
+        $bmp.Save($out, $codec, $ep)
+        $g.Dispose(); $bmp.Dispose(); $img.Dispose()
+    }
+    $outRel
+}
+
+function Get-PostPath($p) {
+    $d = [datetime]$p.date
+    '{0:yyyy}/{0:MM}/{0:dd}/{1}/' -f $d, $p.slug
+}
+
+# Reescriu els enllaços interns de WordPress a les rutes noves
+function Fix-Links([string] $html) {
+    $html = $html -replace 'https?://mikirosinyol\.com/index\.php/(\d{4}/\d{2}/\d{2}/[^"/]+/?)', '/$1'
+    $html = $html -replace 'https?://mikirosinyol\.com/index\.php/(inicio|lombok)/?', '/'
+    $html
+}
+
+# Converteix el contingut d'Elementor en blocs simples: paràgrafs, subtítols, galeries i vídeos
+function Convert-Content($p) {
+    $html = $p.content.rendered -replace '(?s)<style.*?</style>', '' -replace '(?s)<script.*?</script>', ''
+    $tokens = [regex]::Matches($html, '(?s)<h([2-6])[^>]*>(.*?)</h\1>|<p[^>]*>(.*?)</p>|<img [^>]*>|<video [^>]*>')
+    $out = New-Object System.Text.StringBuilder
+    $gallery = New-Object System.Collections.ArrayList
+    $title = $p.title.rendered
+    $n = 0
+    $flush = {
+        if ($gallery.Count -gt 0) {
+            $cls = if ($gallery.Count -eq 1) { 'gallery single' } else { 'gallery' }
+            [void]$out.AppendLine("<div class=""$cls"">")
+            foreach ($g in $gallery) { [void]$out.AppendLine($g) }
+            [void]$out.AppendLine('</div>')
+            $gallery.Clear()
+        }
+    }
+    foreach ($t in $tokens) {
+        $v = $t.Value
+        if ($v.StartsWith('<img')) {
+            $src = [regex]::Match($v, 'src="([^"]+)"').Groups[1].Value
+            $rel = Resolve-Image $src
+            if (-not $rel) { continue }
+            $n++
+            $wh = Get-Size $rel
+            $orient = if ($wh[1] -gt $wh[0]) { ' class="tall"' } else { '' }
+            [void]$gallery.Add("<a href=""/media/$rel"" data-lightbox$orient><img src=""/media/$rel"" width=""$($wh[0])"" height=""$($wh[1])"" loading=""lazy"" decoding=""async"" alt=""$(Enc (Dec $title)) – foto $n""></a>")
+        }
+        elseif ($v.StartsWith('<video')) {
+            & $flush
+            $src = [regex]::Match($v, 'src="([^"]+)"').Groups[1].Value
+            $rel = ($src -replace '^.*?wp-content/uploads/', '') -replace '\.\w+$', '.mp4'
+            $poster = $rel -replace '\.mp4$', '.jpg'
+            [void]$out.AppendLine("<figure class=""video""><video src=""/media/$rel"" poster=""/media/$poster"" controls preload=""none"" playsinline></video></figure>")
+        }
+        elseif ($t.Groups[1].Success) {
+            & $flush
+            $lvl = [Math]::Max(2, [int]$t.Groups[1].Value)
+            [void]$out.AppendLine("<h$lvl>$($t.Groups[2].Value.Trim())</h$lvl>")
+        }
+        else {
+            $inner = $t.Groups[3].Value.Trim()
+            if ($inner -eq '' -or $inner -eq '&nbsp;') { continue }
+            & $flush
+            [void]$out.AppendLine("<p>$(Fix-Links $inner)</p>")
+        }
+    }
+    & $flush
+    $out.ToString()
+}
+
+function First-Image($p) {
+    $m = [regex]::Match($p.content.rendered, '<img[^>]+src="([^"]+wp-content/uploads/[^"]+)"')
+    if ($m.Success) { Resolve-Image $m.Groups[1].Value }
+}
+
+function Excerpt($p) {
+    $m = [regex]::Match($p.content.rendered, '(?s)<p[^>]*>(.*?)</p>')
+    $t = (Dec ($m.Groups[1].Value -replace '<[^>]+>', '')).Trim()
+    if ($t.Length -gt 150) { $t = $t.Substring(0, $t.LastIndexOf(' ', 150)) + '…' }
+    $t
+}
+
+$siteName = 'Miki Rosinyol'
+$baseUrl = 'https://mikirosinyol.com'
+$instagram = 'https://www.instagram.com/mikirosinyol/'
+$linkedin = 'https://www.linkedin.com/in/miquel-rosinyol-b00798132/'
+
+function Layout([string] $title, [string] $desc, [string] $path, [string] $image, [string] $body, [string] $bodyClass) {
+    $fullTitle = if ($title -eq $siteName) { "$siteName · Digital nomad" } else { "$title · $siteName" }
+    $og = if ($image) { "<meta property=""og:image"" content=""$baseUrl/media/$image"">" } else { '' }
+    @"
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$(Enc $fullTitle)</title>
+<meta name="description" content="$(Enc $desc)">
+<link rel="canonical" href="$baseUrl/$path">
+<meta property="og:title" content="$(Enc $fullTitle)">
+<meta property="og:description" content="$(Enc $desc)">
+<meta property="og:type" content="website">
+$og
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+</head>
+<body class="$bodyClass">
+<header class="topbar">
+  <a class="brand" href="/">Miki Rosinyol</a>
+  <nav>
+    <a href="/#lombok">Lombok</a>
+    <a href="/#asia">471 dies a Àsia</a>
+    <a href="$instagram" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+  </nav>
+</header>
+$body
+<footer class="footer">
+  <p>© $((Get-Date).Year) Miki Rosinyol · <a href="$instagram" target="_blank" rel="noopener">Instagram</a> · <a href="$linkedin" target="_blank" rel="noopener">LinkedIn</a></p>
+</footer>
+<script src="/assets/site.js" defer></script>
+</body>
+</html>
+"@
+}
+
+# --- Dades
+$posts = @(Get-Content (Join-Path $Data 'posts.json') -Raw -Encoding UTF8 | ConvertFrom-Json)
+$posts = @($posts | ForEach-Object { $_ } | Sort-Object { [datetime]$_.date })
+$lombokSlugs = @('nova-aventura')
+$asia = @($posts | Where-Object { $lombokSlugs -notcontains $_.slug })
+$lombok = @($posts | Where-Object { $lombokSlugs -contains $_.slug })
+
+# --- Entrades
+for ($i = 0; $i -lt $posts.Count; $i++) {
+    $p = $posts[$i]
+    $title = Dec $p.title.rendered
+    $date = [datetime]$p.date
+    $path = Get-PostPath $p
+    $cover = First-Image $p
+    $content = Convert-Content $p
+    $prev = if ($i -gt 0) { $posts[$i - 1] } else { $null }
+    $next = if ($i -lt $posts.Count - 1) { $posts[$i + 1] } else { $null }
+    $nav = '<nav class="post-nav">'
+    if ($prev) { $nav += "<a class=""prev"" href=""/$(Get-PostPath $prev)""><span>← Anterior</span>$(Enc (Dec $prev.title.rendered))</a>" } else { $nav += '<span></span>' }
+    if ($next) { $nav += "<a class=""next"" href=""/$(Get-PostPath $next)""><span>Següent →</span>$(Enc (Dec $next.title.rendered))</a>" }
+    $nav += '</nav>'
+    $chapter = if ($lombokSlugs -contains $p.slug) { 'Lombok' } else { '471 dies a Àsia' }
+    $day = if ($lombokSlugs -contains $p.slug) { '' } else {
+        $d = [int](($date - [datetime]$asia[0].date).TotalDays) + 1
+        " · Dia $d"
+    }
+    $body = @"
+<main class="post">
+  <header class="post-head">
+    <p class="kicker">$chapter$day</p>
+    <h1>$(Enc $title)</h1>
+    <p class="date"><time datetime="$($date.ToString('yyyy-MM-dd'))">$(Format-DateCa $date)</time></p>
+  </header>
+  <article class="prose">
+$content
+  </article>
+  $nav
+</main>
+"@
+    Write-File (Join-Path $Site (($path -replace '/', '\') + 'index.html')) (Layout $title (Excerpt $p) $path $cover $body 'page-post')
+    # Redirecció des de l'URL antiga de WordPress
+    $old = "index.php/$path"
+    Write-File (Join-Path $Site (($old -replace '/', '\') + 'index.html')) "<!doctype html><meta charset=""utf-8""><title>$(Enc $title)</title><link rel=""canonical"" href=""$baseUrl/$path""><meta http-equiv=""refresh"" content=""0; url=/$path""><a href=""/$path"">$(Enc $title)</a>"
+}
+foreach ($old in 'index.php/inicio/', 'index.php/lombok/', 'index.php/') {
+    Write-File (Join-Path $Site (($old -replace '/', '\') + 'index.html')) '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/"><a href="/">Miki Rosinyol</a>'
+}
+
+# --- Portada
+function Card($p) {
+    $img = First-Image $p
+    $thumb = if ($img) { New-Thumb $img $p.slug } else { $null }
+    $date = [datetime]$p.date
+    $imgTag = if ($thumb) { "<img src=""/media/$thumb"" width=""640"" height=""480"" loading=""lazy"" decoding=""async"" alt="""">" } else { '' }
+    @"
+<a class="card" href="/$(Get-PostPath $p)">
+  <div class="card-img">$imgTag</div>
+  <div class="card-body">
+    <time datetime="$($date.ToString('yyyy-MM-dd'))">$(Format-DateCa $date)</time>
+    <h3>$(Enc (Dec $p.title.rendered))</h3>
+  </div>
+</a>
+"@
+}
+
+# Foto de portada triada per en Miki (entrada "La comunitat")
+$heroImg = '2024/11/thumbnail_IMG_8346.jpg'
+$cards = New-Object System.Text.StringBuilder
+foreach ($grp in ($asia | Sort-Object { [datetime]$_.date } -Descending | Group-Object { ([datetime]$_.date).Year })) {
+    [void]$cards.AppendLine("<h3 class=""year"">$($grp.Name)</h3><div class=""grid"">")
+    foreach ($p in $grp.Group) { [void]$cards.AppendLine((Card $p)) }
+    [void]$cards.AppendLine('</div>')
+}
+$lombokCards = ($lombok | ForEach-Object { Card $_ }) -join "`n"
+$days = [int](([datetime]$asia[-1].date - [datetime]$asia[0].date).TotalDays) + 1
+
+$homeHtml = @"
+<section class="hero" style="--hero: url('/media/$heroImg')">
+  <div class="hero-inner">
+    <p class="kicker">Digital nomad · Surf · Dades</p>
+    <h1>Miki Rosinyol</h1>
+    <p class="lead">Un any i escaig vivint, treballant i fent surf per Àsia i Oceania. Aquest és el diari de l'aventura.</p>
+    <div class="hero-links">
+      <a class="btn" href="#asia">Llegir el viatge</a>
+      <a class="btn ghost" href="$instagram" target="_blank" rel="noopener">Instagram</a>
+      <a class="btn ghost" href="$linkedin" target="_blank" rel="noopener">LinkedIn</a>
+    </div>
+  </div>
+</section>
+<main>
+  <section class="chapter" id="lombok">
+    <div class="chapter-head">
+      <p class="kicker">Capítol nou</p>
+      <h2>Lombok</h2>
+      <p>Una nova aventura comença.</p>
+    </div>
+    <div class="grid">$lombokCards</div>
+  </section>
+  <section class="chapter" id="asia">
+    <div class="chapter-head">
+      <p class="kicker">$(Format-DateCa ([datetime]$asia[0].date)) – $(Format-DateCa ([datetime]$asia[-1].date))</p>
+      <h2>471 dies a Àsia</h2>
+      <ul class="stats">
+        <li><strong>471</strong> dies</li>
+        <li><strong>$($asia.Count)</strong> entrades</li>
+        <li><strong>$($sizeCache.Count)</strong> fotos</li>
+      </ul>
+    </div>
+$($cards.ToString())
+  </section>
+</main>
+"@
+Write-File (Join-Path $Site 'index.html') (Layout $siteName 'Diari de viatge de Miki Rosinyol: 471 dies vivint, treballant i fent surf per Àsia i Oceania.' '' $heroImg $homeHtml 'page-home')
+
+# --- 404 i fitxers de GitHub Pages
+Write-File (Join-Path $Site '404.html') (Layout 'Pàgina no trobada' '' '404.html' '' '<main class="post"><header class="post-head"><h1>Aquesta onada no existeix</h1><p class="date"><a href="/">Torna a l''inici</a></p></header></main>' 'page-post')
+Write-File (Join-Path $Site '.nojekyll') ''
+
+Write-Output "Generades $($posts.Count) entrades, $($sizeCache.Count) fotos referenciades."
