@@ -151,6 +151,8 @@ $instagram = 'https://www.instagram.com/mikirosinyol/'
 $linkedin = 'https://www.linkedin.com/in/miquel-rosinyol-b00798132/'
 # Web de Data Intelligence BCN: buit fins que existeixi. Quan hi sigui, posa-hi 'https://www.dataintelligencebcn.com/' i el logo serà un enllaç.
 $dibUrl = ''
+# Codi de GoatCounter (mètriques sense cookies). Buit = no es carrega.
+$goatCode = ''
 function Dib-Icon([string] $cls) {
     $svg = '<svg class="ico" aria-hidden="true"><use href="#i-dib"/></svg>'
     if ($dibUrl) { "<a class=`"$cls`" href=`"$dibUrl`" target=`"_blank`" rel=`"noopener`" aria-label=`"Data Intelligence BCN`">$svg</a>" }
@@ -182,6 +184,7 @@ $og
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css?v=$($assetVer['style.css'])">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+$(if ($goatCode) { "<script data-goatcounter=""https://$goatCode.goatcounter.com/count"" async src=""//gc.zgo.at/count.js""></script>" })
 </head>
 <body class="$bodyClass">
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -317,4 +320,10 @@ Write-File (Join-Path $Site 'index.html') (Layout $siteName 'ONE LIFE' '' $heroI
 Write-File (Join-Path $Site '404.html') (Layout $siteName '' '404.html' '' "<main class=""post""><header class=""post-head""><h1><a href=""/"">$siteName</a></h1></header></main>" 'page-post')
 Write-File (Join-Path $Site '.nojekyll') ''
 
+# --- Sitemap i robots.txt per als cercadors
+$urls = New-Object System.Text.StringBuilder
+[void]$urls.AppendLine("<url><loc>$baseUrl/</loc><lastmod>$(([datetime]$posts[-1].modified).ToString('yyyy-MM-dd'))</lastmod></url>")
+foreach ($p in $posts) { [void]$urls.AppendLine("<url><loc>$baseUrl/$(Get-PostPath $p)</loc><lastmod>$(([datetime]$p.modified).ToString('yyyy-MM-dd'))</lastmod></url>") }
+Write-File (Join-Path $Site 'sitemap.xml') ("<?xml version=""1.0"" encoding=""UTF-8""?>`n<urlset xmlns=""http://www.sitemaps.org/schemas/sitemap/0.9"">`n" + $urls.ToString() + "</urlset>`n")
+Write-File (Join-Path $Site 'robots.txt') "User-agent: *`nAllow: /`n`nSitemap: $baseUrl/sitemap.xml`n"
 Write-Output "Generades $($posts.Count) entrades, $($sizeCache.Count) fotos referenciades."
