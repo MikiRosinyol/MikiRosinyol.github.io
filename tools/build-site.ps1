@@ -168,13 +168,13 @@ function Layout([string] $title, [string] $desc, [string] $path, [string] $image
 $og
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 </head>
 <body class="$bodyClass">
 <header class="topbar">
-  <a class="brand" href="/">$siteName</a>
+  <a class="brand" href="/">Miki <span class="surname">rosinyol</span></a>
   <nav>
     <a href="/#lombok">Lombok</a>
     <a href="/#asia">471 dies a Àsia</a>
@@ -258,7 +258,7 @@ $lombokCards = ($lombok | ForEach-Object { Card $_ }) -join "`n"
 $homeHtml = @"
 <section class="hero" style="--hero: url('/media/$heroImg')">
   <div class="hero-inner">
-    <h1>$siteName</h1>
+    <h1><span>Miki</span> <span class="surname">rosinyol</span></h1>
     <p class="lead">Digital nomad</p>
     <div class="hero-links">
       <a class="btn" href="$instagram" target="_blank" rel="noopener">Instagram</a>

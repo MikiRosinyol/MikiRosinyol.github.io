@@ -57,7 +57,11 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
 }
-.brand { font-family: var(--serif); font-weight: 700; font-size: 1.15rem; color: var(--text); text-decoration: none; }
+.brand {
+  font-family: "Bebas Neue", var(--sans); font-weight: 400; font-size: 1.6rem; line-height: 1;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--text); text-decoration: none;
+}
+.surname { color: var(--accent); }
 .topbar nav { display: flex; gap: clamp(.8rem, 2.5vw, 1.6rem); }
 .topbar nav a { color: var(--muted); text-decoration: none; font-size: .92rem; font-weight: 500; white-space: nowrap; }
 .topbar nav a:hover { color: var(--text); }
@@ -83,7 +87,12 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
   .hero-inner { padding: 1.5rem 16px 2rem; }
 }
 .hero .kicker { color: #bfeff4; }
-.hero h1 { font-size: clamp(2.8rem, 8vw, 5.5rem); margin: 0 0 .6rem; }
+.hero h1 {
+  display: grid; margin: 0 0 .8rem;
+  font-family: "Bebas Neue", var(--sans); font-weight: 400; text-transform: uppercase;
+  font-size: clamp(4rem, 14vw, 9.5rem); line-height: .85; letter-spacing: .04em;
+}
+.hero h1 .surname { color: #4fc1cf; }
 .hero .lead { font-size: clamp(1.05rem, 2.2vw, 1.3rem); margin: 0 0 1.6rem; opacity: .95; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; }
 .hero-links { display: flex; flex-wrap: wrap; gap: .6rem; }
 .btn {
