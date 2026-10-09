@@ -276,6 +276,13 @@ $heroImg = '2024/11/thumbnail_IMG_8346.jpg'
 $asiaCards = ($asia | Sort-Object { [datetime]$_.date } -Descending | ForEach-Object { Card $_ }) -join "`n"
 $lombokCards = ($lombok | ForEach-Object { Card $_ }) -join "`n"
 
+# Títol de secció: primera paraula en color; si només n'hi ha una, la primera lletra
+function Section-Title([string] $txt) {
+    $i = $txt.IndexOf(' ')
+    if ($i -gt 0) { "<span class=`"t`">$(Enc $txt.Substring(0, $i))</span>$(Enc $txt.Substring($i))" }
+    else { "<span class=`"t`">$(Enc $txt.Substring(0, 1))</span>$(Enc $txt.Substring(1))" }
+}
+
 $homeHtml = @"
 <section class="hero" style="--hero: url('/media/$heroImg')">
   <div class="hero-inner">
@@ -292,13 +299,13 @@ $homeHtml = @"
 <main>
   <section class="chapter" id="lombok">
     <div class="chapter-head">
-      <h2>Lombok</h2>
+      <h2 class="sh">$(Section-Title 'Lombok')</h2>
     </div>
     <div class="grid">$lombokCards</div>
   </section>
   <section class="chapter" id="asia">
     <div class="chapter-head">
-      <h2>471 dies a Àsia</h2>
+      <h2 class="sh">$(Section-Title '471 dies a Àsia')</h2>
     </div>
     <div class="grid">$asiaCards</div>
   </section>
