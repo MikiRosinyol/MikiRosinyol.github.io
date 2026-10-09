@@ -109,7 +109,7 @@ function Convert-Content($p) {
             $n++
             $wh = Get-Size $rel
             $orient = if ($wh[1] -gt $wh[0]) { ' class="tall"' } else { '' }
-            [void]$gallery.Add("<a href=""/media/$rel"" data-lightbox$orient><img src=""/media/$rel"" width=""$($wh[0])"" height=""$($wh[1])"" loading=""lazy"" decoding=""async"" alt=""$(Enc (Dec $title)) – foto $n""></a>")
+            [void]$gallery.Add("<a href=""/media/$rel"" data-lightbox$orient><img src=""/media/$rel"" width=""$($wh[0])"" height=""$($wh[1])"" loading=""lazy"" decoding=""async"" alt=""""></a>")
         }
         elseif ($v.StartsWith('<video')) {
             & $flush
@@ -141,18 +141,17 @@ function First-Image($p) {
 
 function Excerpt($p) {
     $m = [regex]::Match($p.content.rendered, '(?s)<p[^>]*>(.*?)</p>')
-    $t = (Dec ($m.Groups[1].Value -replace '<[^>]+>', '')).Trim()
-    if ($t.Length -gt 150) { $t = $t.Substring(0, $t.LastIndexOf(' ', 150)) + '…' }
-    $t
+    (Dec ($m.Groups[1].Value -replace '<[^>]+>', '')).Trim()
 }
 
-$siteName = 'Miki Rosinyol'
+# Només textos que ja eren a la web original de WordPress
+$siteName = 'Miki rosinyol'
 $baseUrl = 'https://mikirosinyol.com'
 $instagram = 'https://www.instagram.com/mikirosinyol/'
 $linkedin = 'https://www.linkedin.com/in/miquel-rosinyol-b00798132/'
 
 function Layout([string] $title, [string] $desc, [string] $path, [string] $image, [string] $body, [string] $bodyClass) {
-    $fullTitle = if ($title -eq $siteName) { "$siteName · Digital nomad" } else { "$title · $siteName" }
+    $fullTitle = if ($title -eq $siteName) { $siteName } else { "$title – $siteName" }
     $og = if ($image) { "<meta property=""og:image"" content=""$baseUrl/media/$image"">" } else { '' }
     @"
 <!doctype html>
@@ -175,7 +174,7 @@ $og
 </head>
 <body class="$bodyClass">
 <header class="topbar">
-  <a class="brand" href="/">Miki Rosinyol</a>
+  <a class="brand" href="/">$siteName</a>
   <nav>
     <a href="/#lombok">Lombok</a>
     <a href="/#asia">471 dies a Àsia</a>
@@ -184,7 +183,7 @@ $og
 </header>
 $body
 <footer class="footer">
-  <p>© $((Get-Date).Year) Miki Rosinyol · <a href="$instagram" target="_blank" rel="noopener">Instagram</a> · <a href="$linkedin" target="_blank" rel="noopener">LinkedIn</a></p>
+  <p><a href="$instagram" target="_blank" rel="noopener">Instagram</a> · <a href="$linkedin" target="_blank" rel="noopener">Linkedin</a></p>
 </footer>
 <script src="/assets/site.js" defer></script>
 </body>
@@ -210,18 +209,12 @@ for ($i = 0; $i -lt $posts.Count; $i++) {
     $prev = if ($i -gt 0) { $posts[$i - 1] } else { $null }
     $next = if ($i -lt $posts.Count - 1) { $posts[$i + 1] } else { $null }
     $nav = '<nav class="post-nav">'
-    if ($prev) { $nav += "<a class=""prev"" href=""/$(Get-PostPath $prev)""><span>← Anterior</span>$(Enc (Dec $prev.title.rendered))</a>" } else { $nav += '<span></span>' }
-    if ($next) { $nav += "<a class=""next"" href=""/$(Get-PostPath $next)""><span>Següent →</span>$(Enc (Dec $next.title.rendered))</a>" }
+    if ($prev) { $nav += "<a class=""prev"" href=""/$(Get-PostPath $prev)""><span>←</span>$(Enc (Dec $prev.title.rendered))</a>" } else { $nav += '<span></span>' }
+    if ($next) { $nav += "<a class=""next"" href=""/$(Get-PostPath $next)""><span>→</span>$(Enc (Dec $next.title.rendered))</a>" }
     $nav += '</nav>'
-    $chapter = if ($lombokSlugs -contains $p.slug) { 'Lombok' } else { '471 dies a Àsia' }
-    $day = if ($lombokSlugs -contains $p.slug) { '' } else {
-        $d = [int](($date - [datetime]$asia[0].date).TotalDays) + 1
-        " · Dia $d"
-    }
     $body = @"
 <main class="post">
   <header class="post-head">
-    <p class="kicker">$chapter$day</p>
     <h1>$(Enc $title)</h1>
     <p class="date"><time datetime="$($date.ToString('yyyy-MM-dd'))">$(Format-DateCa $date)</time></p>
   </header>
@@ -237,7 +230,7 @@ $content
     Write-File (Join-Path $Site (($old -replace '/', '\') + 'index.html')) "<!doctype html><meta charset=""utf-8""><title>$(Enc $title)</title><link rel=""canonical"" href=""$baseUrl/$path""><meta http-equiv=""refresh"" content=""0; url=/$path""><a href=""/$path"">$(Enc $title)</a>"
 }
 foreach ($old in 'index.php/inicio/', 'index.php/lombok/', 'index.php/') {
-    Write-File (Join-Path $Site (($old -replace '/', '\') + 'index.html')) '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/"><a href="/">Miki Rosinyol</a>'
+    Write-File (Join-Path $Site (($old -replace '/', '\') + 'index.html')) '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/"><a href="/">Miki rosinyol</a>'
 }
 
 # --- Portada
@@ -259,55 +252,39 @@ function Card($p) {
 
 # Foto de portada triada per en Miki (entrada "La comunitat")
 $heroImg = '2024/11/thumbnail_IMG_8346.jpg'
-$cards = New-Object System.Text.StringBuilder
-foreach ($grp in ($asia | Sort-Object { [datetime]$_.date } -Descending | Group-Object { ([datetime]$_.date).Year })) {
-    [void]$cards.AppendLine("<h3 class=""year"">$($grp.Name)</h3><div class=""grid"">")
-    foreach ($p in $grp.Group) { [void]$cards.AppendLine((Card $p)) }
-    [void]$cards.AppendLine('</div>')
-}
+$asiaCards = ($asia | Sort-Object { [datetime]$_.date } -Descending | ForEach-Object { Card $_ }) -join "`n"
 $lombokCards = ($lombok | ForEach-Object { Card $_ }) -join "`n"
-$days = [int](([datetime]$asia[-1].date - [datetime]$asia[0].date).TotalDays) + 1
 
 $homeHtml = @"
 <section class="hero" style="--hero: url('/media/$heroImg')">
   <div class="hero-inner">
-    <p class="kicker">Digital nomad · Surf · Dades</p>
-    <h1>Miki Rosinyol</h1>
-    <p class="lead">Un any i escaig vivint, treballant i fent surf per Àsia i Oceania. Aquest és el diari de l'aventura.</p>
+    <h1>$siteName</h1>
+    <p class="lead">Digital nomad</p>
     <div class="hero-links">
-      <a class="btn" href="#asia">Llegir el viatge</a>
-      <a class="btn ghost" href="$instagram" target="_blank" rel="noopener">Instagram</a>
-      <a class="btn ghost" href="$linkedin" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn" href="$instagram" target="_blank" rel="noopener">Instagram</a>
+      <a class="btn ghost" href="$linkedin" target="_blank" rel="noopener">Linkedin</a>
     </div>
   </div>
 </section>
 <main>
   <section class="chapter" id="lombok">
     <div class="chapter-head">
-      <p class="kicker">Capítol nou</p>
       <h2>Lombok</h2>
-      <p>Una nova aventura comença.</p>
     </div>
     <div class="grid">$lombokCards</div>
   </section>
   <section class="chapter" id="asia">
     <div class="chapter-head">
-      <p class="kicker">$(Format-DateCa ([datetime]$asia[0].date)) – $(Format-DateCa ([datetime]$asia[-1].date))</p>
       <h2>471 dies a Àsia</h2>
-      <ul class="stats">
-        <li><strong>471</strong> dies</li>
-        <li><strong>$($asia.Count)</strong> entrades</li>
-        <li><strong>$($sizeCache.Count)</strong> fotos</li>
-      </ul>
     </div>
-$($cards.ToString())
+    <div class="grid">$asiaCards</div>
   </section>
 </main>
 "@
-Write-File (Join-Path $Site 'index.html') (Layout $siteName 'Diari de viatge de Miki Rosinyol: 471 dies vivint, treballant i fent surf per Àsia i Oceania.' '' $heroImg $homeHtml 'page-home')
+Write-File (Join-Path $Site 'index.html') (Layout $siteName 'Digital nomad' '' $heroImg $homeHtml 'page-home')
 
-# --- 404 i fitxers de GitHub Pages
-Write-File (Join-Path $Site '404.html') (Layout 'Pàgina no trobada' '' '404.html' '' '<main class="post"><header class="post-head"><h1>Aquesta onada no existeix</h1><p class="date"><a href="/">Torna a l''inici</a></p></header></main>' 'page-post')
+# --- 404 (sense text propi: només l'enllaç a l'inici) i fitxers de GitHub Pages
+Write-File (Join-Path $Site '404.html') (Layout $siteName '' '404.html' '' "<main class=""post""><header class=""post-head""><h1><a href=""/"">$siteName</a></h1></header></main>" 'page-post')
 Write-File (Join-Path $Site '.nojekyll') ''
 
 Write-Output "Generades $($posts.Count) entrades, $($sizeCache.Count) fotos referenciades."
