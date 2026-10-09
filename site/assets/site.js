@@ -1,3 +1,18 @@
+// Menú del mòbil: obre i tanca la llista de seccions
+(function () {
+  var btn = document.querySelector('.menu-btn');
+  var links = document.getElementById('nav-links');
+  if (!btn || !links) return;
+  function set(open) {
+    links.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function (e) { e.stopPropagation(); set(!links.classList.contains('open')); });
+  links.addEventListener('click', function () { set(false); });
+  document.addEventListener('click', function (e) { if (!links.contains(e.target)) set(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
+})();
+
 // Visor de fotos senzill per a les galeries de les entrades
 (function () {
   var links = Array.prototype.slice.call(document.querySelectorAll('a[data-lightbox]'));

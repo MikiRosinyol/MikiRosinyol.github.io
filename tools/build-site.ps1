@@ -183,11 +183,15 @@ $og
 </svg>
 <header class="topbar">
   <a class="brand" href="/">Miki <span class="surname">rosinyol</span></a>
-  <nav>
+  <nav class="nav-links" id="nav-links">
     <a href="/#lombok">Lombok</a>
     <a href="/#asia">471 dies a Àsia</a>
-    <a class="nav-icon" href="$instagram" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg></a>
   </nav>
+  <div class="nav-tools">
+    <a class="nav-icon" href="$instagram" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg></a>
+    <a class="nav-icon" href="$linkedin" target="_blank" rel="noopener" aria-label="Linkedin"><svg class="ico" aria-hidden="true"><use href="#i-in"/></svg></a>
+    <button class="menu-btn" type="button" aria-label="Menú" aria-expanded="false" aria-controls="nav-links"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
 </header>
 $body
 <footer class="footer">
