@@ -281,7 +281,7 @@ $homeHtml = @"
   <div class="hero-inner">
     <h1><span>Miki</span> <span class="surname">rosinyol</span></h1>
     <div class="hero-line">
-      <p class="lead">Digital nomad</p>
+      <p class="lead">ONE LIFE</p>
       <span class="sep" aria-hidden="true"></span>
       <a href="$instagram" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg></a>
       <a href="$linkedin" target="_blank" rel="noopener" aria-label="Linkedin"><svg class="ico" aria-hidden="true"><use href="#i-in"/></svg></a>
@@ -304,7 +304,7 @@ $homeHtml = @"
   </section>
 </main>
 "@
-Write-File (Join-Path $Site 'index.html') (Layout $siteName 'Digital nomad' '' $heroImg $homeHtml 'page-home')
+Write-File (Join-Path $Site 'index.html') (Layout $siteName 'ONE LIFE' '' $heroImg $homeHtml 'page-home')
 
 # --- 404 (sense text propi: només l'enllaç a l'inici) i fitxers de GitHub Pages
 Write-File (Join-Path $Site '404.html') (Layout $siteName '' '404.html' '' "<main class=""post""><header class=""post-head""><h1><a href=""/"">$siteName</a></h1></header></main>" 'page-post')
