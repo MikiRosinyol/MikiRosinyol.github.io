@@ -150,6 +150,10 @@ $baseUrl = 'https://mikirosinyol.com'
 $instagram = 'https://www.instagram.com/mikirosinyol/'
 $linkedin = 'https://www.linkedin.com/in/miquel-rosinyol-b00798132/'
 
+# Versió dels fitxers d'estil i script: canvia quan canvia el contingut, perquè els navegadors no facin servir la còpia antiga
+$assetVer = @{}
+foreach ($a in 'style.css','site.js') { $assetVer[$a] = (Get-FileHash (Join-Path $Site "assets\$a") -Algorithm MD5).Hash.Substring(0, 8).ToLower() }
+
 function Layout([string] $title, [string] $desc, [string] $path, [string] $image, [string] $body, [string] $bodyClass) {
     $fullTitle = if ($title -eq $siteName) { $siteName } else { "$title – $siteName" }
     $og = if ($image) { "<meta property=""og:image"" content=""$baseUrl/media/$image"">" } else { '' }
@@ -169,7 +173,7 @@ $og
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/style.css?v=$($assetVer['style.css'])">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 </head>
 <body class="$bodyClass">
@@ -185,7 +189,7 @@ $body
 <footer class="footer">
   <p><a href="$instagram" target="_blank" rel="noopener">Instagram</a> · <a href="$linkedin" target="_blank" rel="noopener">Linkedin</a></p>
 </footer>
-<script src="/assets/site.js" defer></script>
+<script src="/assets/site.js?v=$($assetVer['site.js'])" defer></script>
 </body>
 </html>
 "@
