@@ -72,6 +72,9 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
 .ico { width: 22px; height: 22px; display: block; }
 .nav-icon .ico { width: 20px; height: 20px; }
 .menu-btn { display: none; background: none; border: 0; cursor: pointer; }
+/* Logo de Data Intelligence BCN sense enllaç (fins que la web existeixi) */
+.dib-off { display: inline-flex; padding: 4px; color: var(--muted); cursor: default; }
+.hero-icon.dib-off { color: #fff; padding: 2px; }
 
 /* Mòbil: les seccions van dins el menú desplegable */
 @media (max-width: 760px) {

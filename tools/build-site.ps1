@@ -149,6 +149,13 @@ $siteName = 'Miki rosinyol'
 $baseUrl = 'https://mikirosinyol.com'
 $instagram = 'https://www.instagram.com/mikirosinyol/'
 $linkedin = 'https://www.linkedin.com/in/miquel-rosinyol-b00798132/'
+# Web de Data Intelligence BCN: buit fins que existeixi. Quan hi sigui, posa-hi 'https://www.dataintelligencebcn.com/' i el logo serà un enllaç.
+$dibUrl = ''
+function Dib-Icon([string] $cls) {
+    $svg = '<svg class="ico" aria-hidden="true"><use href="#i-dib"/></svg>'
+    if ($dibUrl) { "<a class=`"$cls`" href=`"$dibUrl`" target=`"_blank`" rel=`"noopener`" aria-label=`"Data Intelligence BCN`">$svg</a>" }
+    else { "<span class=`"$cls dib-off`" title=`"Data Intelligence BCN`" aria-label=`"Data Intelligence BCN`" role=`"img`">$svg</span>" }
+}
 
 # Versió dels fitxers d'estil i script: canvia quan canvia el contingut, perquè els navegadors no facin servir la còpia antiga
 $assetVer = @{}
@@ -180,6 +187,7 @@ $og
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></symbol>
   <symbol id="i-in" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="7" y="10" width="2.2" height="7" fill="currentColor"/><circle cx="8.1" cy="7.4" r="1.3" fill="currentColor"/><path d="M11.5 10h2.1v1c.5-.8 1.4-1.2 2.4-1.2 1.9 0 2.7 1.2 2.7 3.2V17h-2.2v-3.6c0-1-.3-1.7-1.2-1.7s-1.6.7-1.6 1.8V17h-2.2z" fill="currentColor"/></symbol>
+  <symbol id="i-dib" viewBox="0 0 100 100"><g stroke="currentColor" stroke-width="7" stroke-linecap="round"><line x1="50" y1="52" x2="20" y2="22"/><line x1="50" y1="52" x2="80" y2="24"/><line x1="50" y1="52" x2="22" y2="80"/><line x1="50" y1="52" x2="80" y2="78"/></g><circle cx="20" cy="22" r="13" fill="currentColor"/><circle cx="80" cy="24" r="10" fill="currentColor"/><circle cx="22" cy="80" r="15" fill="currentColor"/><circle cx="80" cy="78" r="11" fill="currentColor"/><circle cx="50" cy="52" r="12" fill="currentColor"/></symbol>
 </svg>
 <header class="topbar">
   <a class="brand" href="/">Miki <span class="surname">rosinyol</span></a>
@@ -190,6 +198,7 @@ $og
   <div class="nav-tools">
     <a class="nav-icon" href="$instagram" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg></a>
     <a class="nav-icon" href="$linkedin" target="_blank" rel="noopener" aria-label="Linkedin"><svg class="ico" aria-hidden="true"><use href="#i-in"/></svg></a>
+    $(Dib-Icon 'nav-icon')
     <button class="menu-btn" type="button" aria-label="Menú" aria-expanded="false" aria-controls="nav-links"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
   </div>
 </header>
@@ -276,6 +285,7 @@ $homeHtml = @"
       <span class="sep" aria-hidden="true"></span>
       <a href="$instagram" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg></a>
       <a href="$linkedin" target="_blank" rel="noopener" aria-label="Linkedin"><svg class="ico" aria-hidden="true"><use href="#i-in"/></svg></a>
+      $(Dib-Icon 'hero-icon')
     </div>
   </div>
 </section>
