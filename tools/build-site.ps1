@@ -177,12 +177,16 @@ $og
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 </head>
 <body class="$bodyClass">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></symbol>
+  <symbol id="i-in" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="7" y="10" width="2.2" height="7" fill="currentColor"/><circle cx="8.1" cy="7.4" r="1.3" fill="currentColor"/><path d="M11.5 10h2.1v1c.5-.8 1.4-1.2 2.4-1.2 1.9 0 2.7 1.2 2.7 3.2V17h-2.2v-3.6c0-1-.3-1.7-1.2-1.7s-1.6.7-1.6 1.8V17h-2.2z" fill="currentColor"/></symbol>
+</svg>
 <header class="topbar">
   <a class="brand" href="/">Miki <span class="surname">rosinyol</span></a>
   <nav>
     <a href="/#lombok">Lombok</a>
     <a href="/#asia">471 dies a Àsia</a>
-    <a href="$instagram" target="_blank" rel="noopener" aria-label="Instagram">Instagram</a>
+    <a class="nav-icon" href="$instagram" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg></a>
   </nav>
 </header>
 $body
@@ -263,10 +267,11 @@ $homeHtml = @"
 <section class="hero" style="--hero: url('/media/$heroImg')">
   <div class="hero-inner">
     <h1><span>Miki</span> <span class="surname">rosinyol</span></h1>
-    <p class="lead">Digital nomad</p>
-    <div class="hero-links">
-      <a class="btn" href="$instagram" target="_blank" rel="noopener">Instagram</a>
-      <a class="btn ghost" href="$linkedin" target="_blank" rel="noopener">Linkedin</a>
+    <div class="hero-line">
+      <p class="lead">Digital nomad</p>
+      <span class="sep" aria-hidden="true"></span>
+      <a href="$instagram" target="_blank" rel="noopener" aria-label="Instagram"><svg class="ico" aria-hidden="true"><use href="#i-ig"/></svg></a>
+      <a href="$linkedin" target="_blank" rel="noopener" aria-label="Linkedin"><svg class="ico" aria-hidden="true"><use href="#i-in"/></svg></a>
     </div>
   </div>
 </section>

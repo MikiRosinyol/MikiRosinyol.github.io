@@ -60,12 +60,20 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
 .brand {
   font-family: "Bebas Neue", var(--sans); font-weight: 400; font-size: 1.6rem; line-height: 1;
   letter-spacing: .04em; text-transform: uppercase; color: var(--text); text-decoration: none;
+  white-space: nowrap;
+}
+@media (max-width: 420px) {
+  .brand { font-size: 1.35rem; }
+  .topbar { gap: .6rem; }
+  .topbar nav { gap: .7rem; }
+  .topbar nav a { font-size: .85rem; }
 }
 .surname { color: var(--accent); }
-.topbar nav { display: flex; gap: clamp(.8rem, 2.5vw, 1.6rem); }
+.topbar nav { display: flex; align-items: center; gap: clamp(.8rem, 2.5vw, 1.6rem); }
 .topbar nav a { color: var(--muted); text-decoration: none; font-size: .92rem; font-weight: 500; white-space: nowrap; }
 .topbar nav a:hover { color: var(--text); }
-@media (max-width: 560px) { .topbar nav a:last-child { display: none; } }
+.ico { width: 22px; height: 22px; display: block; }
+.nav-icon .ico { width: 20px; height: 20px; }
 
 /* Portada */
 .hero {
@@ -93,14 +101,12 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
   font-size: clamp(4rem, 14vw, 9.5rem); line-height: .85; letter-spacing: .04em;
 }
 .hero h1 .surname { color: #4fc1cf; }
-.hero .lead { font-size: clamp(1.05rem, 2.2vw, 1.3rem); margin: 0 0 1.6rem; opacity: .95; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; }
-.hero-links { display: flex; flex-wrap: wrap; gap: .6rem; }
-.btn {
-  display: inline-block; padding: .65rem 1.2rem; border-radius: 999px;
-  background: #fff; color: #12181b; font-weight: 600; text-decoration: none; font-size: .95rem;
-}
-.btn.ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.6); }
-.btn:hover { opacity: .9; }
+.hero .lead { font-size: clamp(1.05rem, 2.2vw, 1.3rem); margin: 0; opacity: .95; text-transform: uppercase; letter-spacing: .14em; font-weight: 600; }
+/* DIGITAL NOMAD | icones, tot en una línia */
+.hero-line { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.hero-line .sep { width: 1px; height: 22px; background: rgba(255,255,255,.5); }
+.hero-line a { color: #fff; display: inline-flex; padding: 2px; transition: color .2s, transform .2s; }
+.hero-line a:hover { color: #4fc1cf; transform: translateY(-2px); }
 
 .chapter { max-width: 1200px; margin: 0 auto; padding: clamp(48px, 8vw, 96px) clamp(16px, 4vw, 40px) 0; }
 .chapter-head { max-width: 680px; margin-bottom: 2rem; }
