@@ -276,7 +276,7 @@ $heroImg = '2024/11/thumbnail_IMG_8346.jpg'
 $asiaCards = ($asia | Sort-Object { [datetime]$_.date } -Descending | ForEach-Object { Card $_ }) -join "`n"
 $lombokCards = ($lombok | ForEach-Object { Card $_ }) -join "`n"
 
-# Títol de secció: primera paraula en color; si només n'hi ha una, la primera lletra
+# Títol de secció: marca la primera paraula (o lletra) amb .t per si es vol destacar amb CSS
 function Section-Title([string] $txt) {
     $i = $txt.IndexOf(' ')
     if ($i -gt 0) { "<span class=`"t`">$(Enc $txt.Substring(0, $i))</span>$(Enc $txt.Substring($i))" }
