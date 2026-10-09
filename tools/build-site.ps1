@@ -152,7 +152,7 @@ $linkedin = 'https://www.linkedin.com/in/miquel-rosinyol-b00798132/'
 # Web de Data Intelligence BCN: buit fins que existeixi. Quan hi sigui, posa-hi 'https://www.dataintelligencebcn.com/' i el logo serà un enllaç.
 $dibUrl = ''
 # Codi de GoatCounter (mètriques sense cookies). Buit = no es carrega.
-$goatCode = ''
+$goatCode = 'mikirosinyol'
 function Dib-Icon([string] $cls) {
     $svg = '<svg class="ico" aria-hidden="true"><use href="#i-dib"/></svg>'
     if ($dibUrl) { "<a class=`"$cls`" href=`"$dibUrl`" target=`"_blank`" rel=`"noopener`" aria-label=`"Data Intelligence BCN`">$svg</a>" }
