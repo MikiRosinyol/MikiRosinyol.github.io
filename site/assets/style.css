@@ -176,7 +176,9 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
 /* Entrades noves: foto + peu de foto en franja fosca a sota (estil C) */
 .gallery figure.ph { margin: 0; display: flex; flex-direction: column; border-radius: 10px; overflow: hidden; background: #1a2226; }
 .gallery figure.ph a { border-radius: 0; flex: 1; }
-.gallery figure.ph.tall img { aspect-ratio: 3 / 4; }
+/* Les fotos es veuen senceres, sense retallar: cada una amb la seva proporció */
+.gallery:has(figure.ph) { align-items: start; }
+.gallery figure.ph img, .gallery figure.ph.tall img { aspect-ratio: auto; height: auto; object-fit: contain; }
 .gallery .cap {
   display: flex; align-items: center; gap: .55em; padding: .7rem .9rem;
   background: #1a2226; color: #e8e4dc;
