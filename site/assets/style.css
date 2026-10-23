@@ -173,6 +173,18 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
 .gallery img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 4 / 3; }
 .gallery a.tall img { aspect-ratio: 3 / 4; }
 .gallery.single { grid-template-columns: 1fr; }
+/* Entrades noves: foto + peu de foto en franja fosca a sota (estil C) */
+.gallery figure.ph { margin: 0; display: flex; flex-direction: column; border-radius: 10px; overflow: hidden; background: #1a2226; }
+.gallery figure.ph a { border-radius: 0; flex: 1; }
+.gallery figure.ph.tall img { aspect-ratio: 3 / 4; }
+.gallery .cap {
+  display: flex; align-items: center; gap: .55em; padding: .7rem .9rem;
+  background: #1a2226; color: #e8e4dc;
+  font: 600 clamp(.66rem, 1.6vw, .8rem)/1.3 var(--sans); letter-spacing: .14em; text-transform: uppercase;
+}
+.gallery .cap .pin { width: 1.1em; height: 1.1em; flex: none; color: #4fc1cf; }
+.gallery .cap .country { color: #4fc1cf; }
+.gallery.single figure.ph img { aspect-ratio: auto; max-height: 85vh; object-fit: contain; }
 .gallery.single img, .gallery.single a.tall img { aspect-ratio: auto; max-height: 85vh; object-fit: contain; margin: 0 auto; }
 @media (max-width: 560px) { .gallery { grid-template-columns: 1fr; } .gallery img, .gallery a.tall img { aspect-ratio: auto; } }
 .video { margin: 2rem auto; }

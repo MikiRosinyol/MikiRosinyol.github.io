@@ -135,13 +135,36 @@ function Convert-Content($p) {
 }
 
 function First-Image($p) {
+    if ($p.blocks) { return $p.cover }
     $m = [regex]::Match($p.content.rendered, '<img[^>]+src="([^"]+wp-content/uploads/[^"]+)"')
     if ($m.Success) { Resolve-Image $m.Groups[1].Value }
 }
 
 function Excerpt($p) {
+    if ($p.blocks) { return $p.excerpt }
     $m = [regex]::Match($p.content.rendered, '(?s)<p[^>]*>(.*?)</p>')
     (Dec ($m.Groups[1].Value -replace '<[^>]+>', '')).Trim()
+}
+
+# Entrades noves (contingut/entrades/*.json, creades amb import-entry.ps1): paràgrafs i galeries amb peu de foto
+function Render-Blocks($p) {
+    $out = New-Object System.Text.StringBuilder
+    foreach ($b in $p.blocks) {
+        if ($b.type -eq 'p') { [void]$out.AppendLine("<p>$(Enc $b.text)</p>"); continue }
+        $imgs = @($b.images)
+        $cls = if ($imgs.Count -eq 1) { 'gallery single' } else { 'gallery' }
+        [void]$out.AppendLine("<div class=""$cls"">")
+        foreach ($im in $imgs) {
+            $tall = if ([int]$im.h -gt [int]$im.w) { ' tall' } else { '' }
+            $cap = ''
+            if ($im.place) {
+                $cap = "<figcaption class=""cap""><svg class=""pin"" aria-hidden=""true""><use href=""#i-pin""/></svg><span>$(Enc $im.place) · <span class=""country"">$(Enc $im.country)</span></span></figcaption>"
+            }
+            [void]$out.AppendLine("<figure class=""ph$tall""><a href=""/media/$($im.src)"" data-lightbox><img src=""/media/$($im.src)"" width=""$($im.w)"" height=""$($im.h)"" loading=""lazy"" decoding=""async"" alt=""""></a>$cap</figure>")
+        }
+        [void]$out.AppendLine('</div>')
+    }
+    $out.ToString()
 }
 
 # Només textos que ja eren a la web original de WordPress
@@ -191,10 +214,12 @@ $(if ($goatCode) { "<script data-goatcounter=""https://$goatCode.goatcounter.com
   <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.4" cy="6.6" r="1.3" fill="currentColor"/></symbol>
   <symbol id="i-in" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="7" y="10" width="2.2" height="7" fill="currentColor"/><circle cx="8.1" cy="7.4" r="1.3" fill="currentColor"/><path d="M11.5 10h2.1v1c.5-.8 1.4-1.2 2.4-1.2 1.9 0 2.7 1.2 2.7 3.2V17h-2.2v-3.6c0-1-.3-1.7-1.2-1.7s-1.6.7-1.6 1.8V17h-2.2z" fill="currentColor"/></symbol>
   <symbol id="i-dib" viewBox="0 0 100 100"><g stroke="currentColor" stroke-width="7" stroke-linecap="round"><line x1="50" y1="52" x2="20" y2="22"/><line x1="50" y1="52" x2="80" y2="24"/><line x1="50" y1="52" x2="22" y2="80"/><line x1="50" y1="52" x2="80" y2="78"/></g><circle cx="20" cy="22" r="13" fill="currentColor"/><circle cx="80" cy="24" r="10" fill="currentColor"/><circle cx="22" cy="80" r="15" fill="currentColor"/><circle cx="80" cy="78" r="11" fill="currentColor"/><circle cx="50" cy="52" r="12" fill="currentColor"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12z" fill="currentColor"/><circle cx="12" cy="10" r="2.6" fill="#1a2226"/></symbol>
 </svg>
 <header class="topbar">
   <a class="brand" href="/">Miki <span class="surname">rosinyol</span></a>
   <nav class="nav-links" id="nav-links">
+    <a href="/#carib">Surf al Carib i més enllà</a>
     <a href="/#lombok">Lombok</a>
     <a href="/#asia">471 dies a Àsia</a>
   </nav>
@@ -217,9 +242,23 @@ $body
 
 # --- Dades
 $posts = @(Get-Content (Join-Path $Data 'posts.json') -Raw -Encoding UTF8 | ConvertFrom-Json)
-$posts = @($posts | ForEach-Object { $_ } | Sort-Object { [datetime]$_.date })
+$posts = @($posts | ForEach-Object { $_ })
+# Entrades noves: es converteixen a la mateixa forma que les de WordPress
+$newDir = Join-Path (Split-Path $Site) 'contingut\entrades'
+foreach ($f in (Get-ChildItem $newDir -Filter *.json -ErrorAction SilentlyContinue)) {
+    $e = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+    $firstImg = ($e.blocks | Where-Object type -eq 'gallery' | Select-Object -First 1).images[0].src
+    $posts += [pscustomobject]@{
+        title = [pscustomobject]@{ rendered = (Enc $e.title) }
+        date = $e.date; modified = $e.date; slug = $e.slug; trip = $e.trip
+        blocks = $e.blocks; cover = $firstImg
+        excerpt = ($e.blocks | Where-Object type -eq 'p' | Select-Object -First 1).text
+    }
+}
+$posts = @($posts | Sort-Object { [datetime]$_.date })
 $lombokSlugs = @('nova-aventura')
-$asia = @($posts | Where-Object { $lombokSlugs -notcontains $_.slug })
+$carib = @($posts | Where-Object { $_.trip -eq 'carib' })
+$asia = @($posts | Where-Object { $lombokSlugs -notcontains $_.slug -and -not $_.trip })
 $lombok = @($posts | Where-Object { $lombokSlugs -contains $_.slug })
 
 # --- Entrades
@@ -229,7 +268,7 @@ for ($i = 0; $i -lt $posts.Count; $i++) {
     $date = [datetime]$p.date
     $path = Get-PostPath $p
     $cover = First-Image $p
-    $content = Convert-Content $p
+    $content = if ($p.blocks) { Render-Blocks $p } else { Convert-Content $p }
     $prev = if ($i -gt 0) { $posts[$i - 1] } else { $null }
     $next = if ($i -lt $posts.Count - 1) { $posts[$i + 1] } else { $null }
     $nav = '<nav class="post-nav">'
@@ -249,7 +288,8 @@ $content
 </main>
 "@
     Write-File (Join-Path $Site (($path -replace '/', '\') + 'index.html')) (Layout $title (Excerpt $p) $path $cover $body 'page-post')
-    # Redirecció des de l'URL antiga de WordPress
+    # Redirecció des de l'URL antiga de WordPress (només les entrades que venen de WordPress)
+    if ($p.blocks) { continue }
     $old = "index.php/$path"
     Write-File (Join-Path $Site (($old -replace '/', '\') + 'index.html')) "<!doctype html><meta charset=""utf-8""><title>$(Enc $title)</title><link rel=""canonical"" href=""$baseUrl/$path""><meta http-equiv=""refresh"" content=""0; url=/$path""><a href=""/$path"">$(Enc $title)</a>"
 }
@@ -278,6 +318,7 @@ function Card($p) {
 $heroImg = '2024/11/thumbnail_IMG_8346.jpg'
 $asiaCards = ($asia | Sort-Object { [datetime]$_.date } -Descending | ForEach-Object { Card $_ }) -join "`n"
 $lombokCards = ($lombok | ForEach-Object { Card $_ }) -join "`n"
+$caribCards = ($carib | Sort-Object { [datetime]$_.date } -Descending | ForEach-Object { Card $_ }) -join "`n"
 
 # Títol de secció: marca la primera paraula (o lletra) amb .t per si es vol destacar amb CSS
 function Section-Title([string] $txt) {
@@ -300,6 +341,12 @@ $homeHtml = @"
   </div>
 </section>
 <main>
+  <section class="chapter" id="carib">
+    <div class="chapter-head">
+      <h2 class="sh">$(Section-Title 'Surf al Carib i més enllà')</h2>
+    </div>
+    <div class="grid">$caribCards</div>
+  </section>
   <section class="chapter" id="lombok">
     <div class="chapter-head">
       <h2 class="sh">$(Section-Title 'Lombok')</h2>
