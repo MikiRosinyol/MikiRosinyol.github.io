@@ -247,7 +247,7 @@ $posts = @($posts | ForEach-Object { $_ })
 $newDir = Join-Path (Split-Path $Site) 'contingut\entrades'
 foreach ($f in (Get-ChildItem $newDir -Filter *.json -ErrorAction SilentlyContinue)) {
     $e = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
-    $firstImg = ($e.blocks | Where-Object type -eq 'gallery' | Select-Object -First 1).images[0].src
+    $firstImg = if ($e.cover) { $e.cover } else { ($e.blocks | Where-Object type -eq 'gallery' | Select-Object -First 1).images[0].src }
     $posts += [pscustomobject]@{
         title = [pscustomobject]@{ rendered = (Enc $e.title) }
         date = $e.date; modified = $e.date; slug = $e.slug; trip = $e.trip

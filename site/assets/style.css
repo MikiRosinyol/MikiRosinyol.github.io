@@ -185,6 +185,10 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
 .gallery .cap .pin { width: 1.1em; height: 1.1em; flex: none; color: #4fc1cf; }
 .gallery .cap .country { color: #4fc1cf; }
 .gallery.single figure.ph img { aspect-ratio: auto; max-height: 85vh; object-fit: contain; }
+/* Foto vertical sola: el marc s'ajusta a la foto, sense franges als costats */
+.gallery.single { justify-items: center; }
+.gallery.single figure.ph.tall { width: fit-content; max-width: 100%; }
+.gallery.single figure.ph.tall img { width: auto; height: auto; max-width: 100%; max-height: min(85vh, 900px); }
 .gallery.single img, .gallery.single a.tall img { aspect-ratio: auto; max-height: 85vh; object-fit: contain; margin: 0 auto; }
 @media (max-width: 560px) { .gallery { grid-template-columns: 1fr; } .gallery img, .gallery a.tall img { aspect-ratio: auto; } }
 .video { margin: 2rem auto; }

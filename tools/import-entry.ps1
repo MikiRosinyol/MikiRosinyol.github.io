@@ -98,6 +98,8 @@ $missing = $photos | Where-Object { $_.Name -match '^(\d+(\s*[A-Za-z])?)\s*-' -a
 foreach ($m in $missing) { Write-Warning "Foto no col·locada: $($m.Name)" }
 
 $data = [ordered]@{ title = $title; date = $maq.date; slug = $maq.slug; trip = $maq.trip; blocks = $blocks }
+# Foto de portada de l'entrada (targeta de la portada i vista prèvia en compartir)
+if ($maq.cover) { $data.cover = "$mediaRel/$(($maq.cover -replace '\s+', '').ToLower()).jpg" }
 New-Item -ItemType Directory -Force $Out | Out-Null
 $file = Join-Path $Out ('{0}-{1}.json' -f $maq.date, $maq.slug)
 [IO.File]::WriteAllText($file, ($data | ConvertTo-Json -Depth 8), $utf8)
