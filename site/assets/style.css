@@ -170,8 +170,9 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
   margin: 2rem 0;
 }
 .gallery a { display: block; overflow: hidden; border-radius: 10px; background: var(--sand); cursor: zoom-in; }
-.gallery img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 4 / 3; }
-.gallery a.tall img { aspect-ratio: 3 / 4; }
+/* Totes les fotos es veuen senceres, sense retallar */
+.gallery { align-items: start; }
+.gallery img { width: 100%; height: auto; }
 .gallery.single { grid-template-columns: 1fr; }
 /* Entrades noves: foto + peu de foto en franja fosca a sota (estil C) */
 .gallery figure.ph { margin: 0; display: flex; flex-direction: column; border-radius: 10px; overflow: hidden; background: #1a2226; }
@@ -191,8 +192,10 @@ h1, h2, h3 { font-family: var(--serif); line-height: 1.15; font-weight: 700; let
 .gallery.single { justify-items: center; }
 .gallery.single figure.ph.tall { width: fit-content; max-width: 100%; }
 .gallery.single figure.ph.tall img { width: auto; height: auto; max-width: 100%; max-height: min(85vh, 900px); }
-.gallery.single img, .gallery.single a.tall img { aspect-ratio: auto; max-height: 85vh; object-fit: contain; margin: 0 auto; }
-@media (max-width: 560px) { .gallery { grid-template-columns: 1fr; } .gallery img, .gallery a.tall img { aspect-ratio: auto; } }
+.gallery.single a.tall { width: fit-content; max-width: 100%; }
+.gallery.single img { max-height: 85vh; object-fit: contain; margin: 0 auto; }
+.gallery.single a.tall img { width: auto; max-width: 100%; }
+@media (max-width: 560px) { .gallery { grid-template-columns: 1fr; } }
 .video { margin: 2rem auto; }
 .video video { width: 100%; max-height: 80vh; border-radius: 10px; background: #000; margin: 0 auto; }
 
