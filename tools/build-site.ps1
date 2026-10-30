@@ -150,7 +150,12 @@ function Excerpt($p) {
 function Render-Blocks($p) {
     $out = New-Object System.Text.StringBuilder
     foreach ($b in $p.blocks) {
-        if ($b.type -eq 'p') { [void]$out.AppendLine("<p>$(Enc $b.text)</p>"); continue }
+        if ($b.type -eq 'p') {
+            # Enllaços escrits al Word com [text](https://...)
+            $txt = [regex]::Replace((Enc $b.text), '\[([^\]]+)\]\((https?://[^)\s]+)\)', '<a href="$2">$1</a>')
+            [void]$out.AppendLine("<p>$txt</p>")
+            continue
+        }
         $imgs = @($b.images)
         $cls = if ($imgs.Count -eq 1) { 'gallery single' } else { 'gallery' }
         [void]$out.AppendLine("<div class=""$cls"">")
@@ -244,9 +249,11 @@ $body
 $posts = @(Get-Content (Join-Path $Data 'posts.json') -Raw -Encoding UTF8 | ConvertFrom-Json)
 $posts = @($posts | ForEach-Object { $_ })
 # Entrades noves: es converteixen a la mateixa forma que les de WordPress
+$drafts = @()
 $newDir = Join-Path (Split-Path $Site) 'contingut\entrades'
 foreach ($f in (Get-ChildItem $newDir -Filter *.json -ErrorAction SilentlyContinue)) {
     $e = Get-Content $f.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($e.draft) { $drafts += $e; continue }
     $firstImg = if ($e.cover) { $e.cover } else { ($e.blocks | Where-Object type -eq 'gallery' | Select-Object -First 1).images[0].src }
     $posts += [pscustomobject]@{
         title = [pscustomobject]@{ rendered = (Enc $e.title) }
@@ -295,6 +302,29 @@ $content
 }
 foreach ($old in 'index.php/inicio/', 'index.php/lombok/', 'index.php/') {
     Write-File (Join-Path $Site (($old -replace '/', '\') + 'index.html')) '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0; url=/"><a href="/">Miki rosinyol</a>'
+}
+
+# --- Esborranys: adreça secreta, sense portada, menú, sitemap ni Google
+$draftRoot = Join-Path $Site 'esborrany'
+if (Test-Path $draftRoot) { Remove-Item $draftRoot -Recurse -Force }
+foreach ($e in $drafts) {
+    $date = [datetime]$e.date
+    $path = "esborrany/$($e.slug)-$($e.draftToken)/"
+    $dp = [pscustomobject]@{ blocks = $e.blocks }
+    $body = @"
+<main class="post">
+  <header class="post-head">
+    <h1>$(Enc $e.title)</h1>
+    <p class="date"><time datetime="$($date.ToString('yyyy-MM-dd'))">$(Format-DateCa $date)</time></p>
+  </header>
+  <article class="prose">
+$(Render-Blocks $dp)
+  </article>
+</main>
+"@
+    $html = (Layout $e.title '' $path $e.cover $body 'page-post').Replace('<head>', "<head>`n<meta name=""robots"" content=""noindex, nofollow"">")
+    Write-File (Join-Path $Site (($path -replace '/', '\') + 'index.html')) $html
+    Write-Output "Esborrany: $baseUrl/$path"
 }
 
 # --- Portada

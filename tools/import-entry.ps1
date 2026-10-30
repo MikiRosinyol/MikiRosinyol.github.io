@@ -98,6 +98,8 @@ $missing = $photos | Where-Object { $_.Name -match '^(\d+(\s*[A-Za-z])?)\s*-' -a
 foreach ($m in $missing) { Write-Warning "Foto no col·locada: $($m.Name)" }
 
 $data = [ordered]@{ title = $title; date = $maq.date; slug = $maq.slug; trip = $maq.trip; blocks = $blocks }
+# Esborrany: es publica en una adreça secreta, fora de la portada, el menú i Google
+if ($maq.draft) { $data.draft = $true; $data.draftToken = $maq.draftToken }
 # Foto de portada de l'entrada (targeta de la portada i vista prèvia en compartir)
 if ($maq.cover) { $data.cover = "$mediaRel/$(($maq.cover -replace '\s+', '').ToLower()).jpg" }
 New-Item -ItemType Directory -Force $Out | Out-Null
