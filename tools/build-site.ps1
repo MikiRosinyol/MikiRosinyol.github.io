@@ -58,6 +58,8 @@ function New-Thumb([string] $rel, [string] $slug) {
         $scale = [Math]::Max($tw / $img.Width, $th / $img.Height)
         $sw = [int]($tw / $scale); $sh = [int]($th / $scale)
         $sx = [int](($img.Width - $sw) / 2); $sy = [int](($img.Height - $sh) / 2)
+        # Fotos verticals: retall cap a dalt perquè no talli els caps
+        if ($img.Height -gt $img.Width) { $sy = [int](($img.Height - $sh) * 0.12) }
         $bmp = New-Object System.Drawing.Bitmap $tw, $th
         $g = [System.Drawing.Graphics]::FromImage($bmp)
         $g.InterpolationMode = 'HighQualityBicubic'

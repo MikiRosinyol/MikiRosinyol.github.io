@@ -60,8 +60,11 @@ $sc = [Math]::Max(27 / $img.Width, 48 / $img.Height); $sw = 27 / $sc; $sh = 48 /
 $gs.DrawImage($img, (New-Object System.Drawing.RectangleF 0, 0, 27, 48), (New-Object System.Drawing.RectangleF (($img.Width - $sw) / 2), (($img.Height - $sh) / 2), $sw, $sh), 'Pixel'); $gs.Dispose()
 $g.InterpolationMode = 'HighQualityBilinear'; $g.DrawImage($small, -40, -40, $W + 80, $H + 80); $g.InterpolationMode = 'HighQualityBicubic'
 $g.FillRectangle((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(150, 10, 14, 16))), 0, 0, $W, $H)
+# Foto vertical: s'encongeix perquè càpiga sense tapar el títol
 $pw = $W; $ph = [int]($pw * $img.Height / $img.Width); $py = 560
-$g.DrawImage($img, 0, $py, $pw, $ph)
+if ($ph -gt 860) { $ph = 860; $pw = [int]($ph * $img.Width / $img.Height) }
+$px = [int](($W - $pw) / 2)
+$g.DrawImage($img, $px, $py, $pw, $ph)
 Brand $g 230 104
 Spaced $g $Kicker $fKick $text ($W / 2) 360 6
 $fT = New-Object System.Drawing.Font($bebas, [single]118, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
