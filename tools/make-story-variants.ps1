@@ -6,7 +6,9 @@ param(
     [Parameter(Mandatory)] [string] $OutDir,
     [Parameter(Mandatory)] [string] $BebasFont,
     [string] $Kicker = 'NOVA ENTRADA AL BLOG',
-    [string] $Section = 'SURF AL CARIB I MÉS ENLLÀ'
+    [string] $Section = 'SURF AL CARIB I MÉS ENLLÀ',
+    [Parameter(Mandatory)] [string] $Line1,
+    [Parameter(Mandatory)] [string] $Line2
 )
 Add-Type -AssemblyName System.Drawing
 $W = 1080; $H = 1920
@@ -63,8 +65,8 @@ $g.DrawImage($img, 0, $py, $pw, $ph)
 Brand $g 230 104
 Spaced $g $Kicker $fKick $text ($W / 2) 360 6
 $fT = New-Object System.Drawing.Font($bebas, [single]118, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-$g.DrawString("BITLLET D'ANADA,", $fT, (New-Object System.Drawing.SolidBrush $text), (New-Object System.Drawing.RectangleF 0, ($py + $ph + 50), $W, 130), (New-Object System.Drawing.StringFormat -Property @{ Alignment = 'Center' }))
-$g.DrawString('ALTRA VEGADA', $fT, (New-Object System.Drawing.SolidBrush $turq), (New-Object System.Drawing.RectangleF 0, ($py + $ph + 160), $W, 130), (New-Object System.Drawing.StringFormat -Property @{ Alignment = 'Center' }))
+$g.DrawString($Line1, $fT, (New-Object System.Drawing.SolidBrush $text), (New-Object System.Drawing.RectangleF 0, ($py + $ph + 50), $W, 130), (New-Object System.Drawing.StringFormat -Property @{ Alignment = 'Center' }))
+$g.DrawString($Line2, $fT, (New-Object System.Drawing.SolidBrush $turq), (New-Object System.Drawing.RectangleF 0, ($py + $ph + 160), $W, 130), (New-Object System.Drawing.StringFormat -Property @{ Alignment = 'Center' }))
 Spaced $g $Section $fKick $muted ($W / 2) ($py + $ph + 310) 6
 $g.Dispose(); Save $b 'story-instagram-B.jpg'; $b.Dispose()
 
@@ -79,8 +81,8 @@ Brand $g 170 80
 $x0 = 80
 Spaced $g $Kicker $fKick $turq $x0 1140 6 'left'
 $fT2 = New-Object System.Drawing.Font($bebas, [single]150, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Pixel)
-$g.DrawString("BITLLET D'ANADA,", $fT2, (New-Object System.Drawing.SolidBrush $text), $x0 - 6, 1195, $tf)
-$g.DrawString('ALTRA VEGADA', $fT2, (New-Object System.Drawing.SolidBrush $text), $x0 - 6, 1335, $tf)
+$g.DrawString($Line1, $fT2, (New-Object System.Drawing.SolidBrush $text), $x0 - 6, 1195, $tf)
+$g.DrawString($Line2, $fT2, (New-Object System.Drawing.SolidBrush $text), $x0 - 6, 1335, $tf)
 Spaced $g $Date.ToUpper() $fDate $muted $x0 1500 5 'left'
 Spaced $g $Section $fDate $turq $x0 1550 5 'left'
 $g.Dispose(); Save $b 'story-instagram-C.jpg'; $b.Dispose()
