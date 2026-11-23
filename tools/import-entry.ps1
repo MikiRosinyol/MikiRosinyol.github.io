@@ -101,7 +101,12 @@ $data = [ordered]@{ title = $title; date = $maq.date; slug = $maq.slug; trip = $
 # Esborrany: es publica en una adreça secreta, fora de la portada, el menú i Google
 if ($maq.draft) { $data.draft = $true; $data.draftToken = $maq.draftToken }
 # Foto de portada de l'entrada (targeta de la portada i vista prèvia en compartir)
-if ($maq.cover) { $data.cover = "$mediaRel/$(($maq.cover -replace '\s+', '').ToLower()).jpg" }
+if ($maq.cover) {
+    $coverName = ($maq.cover -replace '\s+', '').ToLower()
+    # La portada pot ser una foto que no surt al text: llavors es desa igualment
+    if (-not $used[$maq.cover]) { [void](Save-Photo (Find-Photo $maq.cover) $coverName); $used[$maq.cover] = $true }
+    $data.cover = "$mediaRel/$coverName.jpg"
+}
 New-Item -ItemType Directory -Force $Out | Out-Null
 $file = Join-Path $Out ('{0}-{1}.json' -f $maq.date, $maq.slug)
 [IO.File]::WriteAllText($file, ($data | ConvertTo-Json -Depth 8), $utf8)
